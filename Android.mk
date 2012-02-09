@@ -1,6 +1,3 @@
-ifneq ($(TARGET_SIMULATOR),true)
-ifeq ($(TARGET_ARCH),arm)
-
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -30,17 +27,12 @@ LOCAL_MODULE := recovery
 
 LOCAL_FORCE_STATIC_EXECUTABLE := true
 
-ifdef I_AM_KOUSH
-RECOVERY_NAME := ClockworkMod Recovery
-LOCAL_CFLAGS += -DI_AM_KOUSH
-else
-RECOVERY_NAME := HumberOS CWM Recovery
-endif
+RECOVERY_NAME := HumberOS
 
-RECOVERY_VERSION := $(RECOVERY_NAME) v5.0.2.8
+RECOVERY_VERSION := $(RECOVERY_NAME)-v5.6.0
 
 LOCAL_CFLAGS += -DRECOVERY_VERSION="$(RECOVERY_VERSION)"
-RECOVERY_API_VERSION := 3
+RECOVERY_API_VERSION := 2
 LOCAL_CFLAGS += -DRECOVERY_API_VERSION=$(RECOVERY_API_VERSION)
 
 BOARD_RECOVERY_DEFINES := BOARD_HAS_NO_SELECT_BUTTON BOARD_HAS_SMALL_RECOVERY BOARD_LDPI_RECOVERY BOARD_UMS_LUNFILE BOARD_RECOVERY_ALWAYS_WIPES BOARD_RECOVERY_HANDLES_MOUNT
@@ -160,7 +152,3 @@ include $(commands_recovery_local_path)/updater/Android.mk
 include $(commands_recovery_local_path)/applypatch/Android.mk
 include $(commands_recovery_local_path)/utilities/Android.mk
 commands_recovery_local_path :=
-
-endif   # TARGET_ARCH == arm
-endif    # !TARGET_SIMULATOR
-

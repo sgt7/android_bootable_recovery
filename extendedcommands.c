@@ -183,17 +183,15 @@ void show_install_update_menu()
 
 char* WIPE_MENU_ITEMS[] = {  "wipe cache",
                              "wipe dalvik cache",
-                             "wipe data / soft reset",
                              "wipe data / factory reset",
                              "wipe voltage settings",
                              "wipe battery stats",
                              NULL };
 #define ITEM_WIPE_CACHE         0
 #define ITEM_WIPE_DALVIK        1
-#define ITEM_WIPE_DATA_SOFT     2
-#define ITEM_WIPE_DATA_FACTORY  3
-#define ITEM_WIPE_VOLTS         4
-#define ITEM_WIPE_BATT          5
+#define ITEM_WIPE_DATA_FACTORY  2
+#define ITEM_WIPE_VOLTS         3
+#define ITEM_WIPE_BATT          4
 
 void show_wipe_menu()
 {
@@ -227,16 +225,6 @@ void show_wipe_menu()
                 ui_print("Dalvik Cache Wiped.\n");
                 break;
             }
-            case ITEM_WIPE_DATA_SOFT:
-                if (confirm_selection("Confirm wipe?", "Yes - delete all files on /data /cache /dbdata"))
-                {
-                    ui_print("\n-- Wiping data...\n");
-                    erase_volume("/data");
-                    erase_volume("/cache");
-                    erase_volume("/dbdata");
-                    ui_print("Done.\n");
-                }
-                break;
             case ITEM_WIPE_DATA_FACTORY:
                 if (confirm_selection("Confirm wipe?", "Yes - delete all user data"))
                 {
@@ -246,7 +234,6 @@ void show_wipe_menu()
                     erase_volume("/cache");
                     erase_volume("/dbdata");
                     erase_volume("/sdcard/.android_secure");
-                    erase_volume("/sdcard/android");
                     ui_print("All User Data Wiped.\n");
                 }
                 break;
@@ -1108,9 +1095,8 @@ void create_fstab()
          write_fstab_root("/boot", file);
     write_fstab_root("/cache", file);
     write_fstab_root("/data", file);
-    if (has_datadata()) {
-        write_fstab_root("/datadata", file);
-    }
+    write_fstab_root("/datadata", file);
+    write_fstab_root("/emmc", file);
     write_fstab_root("/system", file);
     write_fstab_root("/sdcard", file);
     write_fstab_root("/sd-ext", file);

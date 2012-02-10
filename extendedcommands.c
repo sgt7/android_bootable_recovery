@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/reboot.h>
-#include <reboot/reboot.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
@@ -26,6 +25,7 @@
 #include "cutils/properties.h"
 #include "firmware.h"
 #include "install.h"
+#include "make_ext4fs.h"
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
@@ -41,6 +41,8 @@
 #include "edify/expr.h"
 #include <libgen.h>
 #include "mtdutils/mtdutils.h"
+#include "bmlutils/bmlutils.h"
+#include "cutils/android_reboot.h"
 
 
 int signature_check_enabled = 1;
@@ -114,13 +116,13 @@ void show_reboot_menu()
         switch (chosen_item)
         {
             case ITEM_REBOOT_NORMAL:
-                reboot_wrapper("");
+                android_reboot(ANDROID_RB_RESTART, 0, 0);
                 break;
             case ITEM_REBOOT_RECOVERY:
-                reboot_wrapper("recovery");
+                android_reboot(ANDROID_RB_RESTART2, 0, "recovery");
                 break;
             case ITEM_REBOOT_DOWNLOAD:
-                reboot_wrapper("download");
+                android_reboot(ANDROID_RB_RESTART2, 0, "download");
                 break;
             default:
                 return;
@@ -609,12 +611,27 @@ int format_device(const char *device, const char *path, const char *fs_type) {
         LOGE("unknown volume \"%s\"\n", path);
         return -1;
     }
+    if (strstr(path, "/data") == path && volume_for_path("/sdcard") == NULL && is_data_media()) {
+        return format_unknown_device(NULL, path, NULL);
+    }
     if (strcmp(fs_type, "ramdisk") == 0) {
         // you can't format the ramdisk.
         LOGE("can't format_volume \"%s\"", path);
         return -1;
     }
 
+    if (strcmp(fs_type, "rfs") == 0) {
+        if (ensure_path_unmounted(path) != 0) {
+            LOGE("format_volume failed to unmount \"%s\"\n", v->mount_point);
+            return -1;
+        }
+        if (0 != format_rfs_device(device, path)) {
+            LOGE("format_volume: format_rfs_device failed on %s\n", device);
+            return -1;
+        }
+        return 0;
+    }
+ 
     if (strcmp(v->mount_point, path) != 0) {
         return format_unknown_device(v->device, path, NULL);
     }
@@ -648,8 +665,13 @@ int format_device(const char *device, const char *path, const char *fs_type) {
     }
 
     if (strcmp(fs_type, "ext4") == 0) {
+        int length = 0;
+        if (strcmp(v->fs_type, "ext4") == 0) {
+            // Our desired filesystem matches the one in fstab, respect v->length
+            length = v->length;
+        }
         reset_ext4fs_info();
-        int result = make_ext4fs(device, NULL, NULL, 0, 0, 0);
+        int result = make_ext4fs(device, length);
         if (result != 0) {
             LOGE("format_volume: make_extf4fs failed on %s\n", device);
             return -1;

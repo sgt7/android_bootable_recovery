@@ -119,10 +119,10 @@ void show_reboot_menu()
                 android_reboot(ANDROID_RB_RESTART, 0, 0);
                 break;
             case ITEM_REBOOT_RECOVERY:
-                android_reboot(ANDROID_RB_RESTART2, 0, "recovery");
+                android_reboot(ANDROID_RB_RESTART2, 2, "recovery");
                 break;
             case ITEM_REBOOT_DOWNLOAD:
-                android_reboot(ANDROID_RB_RESTART2, 0, "download");
+                android_reboot(ANDROID_RB_RESTART2, 2, "download");
                 break;
             default:
                 return;
